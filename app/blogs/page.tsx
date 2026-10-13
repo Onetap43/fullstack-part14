@@ -10,10 +10,11 @@ const Blogs = async ({
   searchParams: Promise<{ filter?: string }>
 }) => {
   const { filter } = await searchParams
-
   const search = filter?.toLowerCase() ?? ""
 
-  const blogs = getBlogs()
+  const allBlogs = await getBlogs()
+
+  const blogs = allBlogs
     .filter((blog) =>
       blog.title.toLowerCase().includes(search)
     )
@@ -30,7 +31,6 @@ const Blogs = async ({
           defaultValue={filter ?? ""}
           placeholder="search by title"
         />
-
         <button type="submit">Search</button>
       </form>
 

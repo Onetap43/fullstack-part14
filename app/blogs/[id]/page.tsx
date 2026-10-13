@@ -12,7 +12,7 @@ const BlogPage = async ({
 }) => {
   const { id } = await params
 
-  const blog = getBlogById(Number(id))
+  const blog = await getBlogById(Number(id))
 
   if (!blog) {
     notFound()
@@ -34,12 +34,7 @@ const BlogPage = async ({
       <p>Likes: {blog.likes}</p>
 
       <form action={likeBlog}>
-        <input
-          type="hidden"
-          name="id"
-          value={blog.id}
-        />
-
+        <input type="hidden" name="id" value={blog.id} />
         <button type="submit">Like</button>
       </form>
     </div>
