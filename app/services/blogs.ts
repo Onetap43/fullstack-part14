@@ -16,13 +16,15 @@ export const getBlogById = async (id: number) => {
 export const addBlog = async (
   title: string,
   author: string,
-  url: string
+  url: string,
+  userId: number
 ) => {
   await db.insert(blogs).values({
     title,
     author,
     url,
     likes: 0,
+    userId,
   })
 }
 
