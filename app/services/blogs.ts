@@ -1,7 +1,10 @@
 import { eq, sql } from "drizzle-orm"
 
 import { db } from "../../db"
-import { blogs } from "../../db/schema"
+import {
+  blogs,
+  readingList,
+} from "../../db/schema"
 
 export const getBlogs = async () => {
   return db.query.blogs.findMany()
@@ -19,13 +22,26 @@ export const addBlog = async (
   url: string,
   userId: number
 ) => {
-  await db.insert(blogs).values({
-    title,
-    author,
-    url,
-    likes: 0,
-    userId,
-  })
+  const [createdBlog] = await db
+    .insert(blogs)
+    .values({
+      title,
+      author,
+      url,
+      likes: 0,
+      userId,
+    })
+    .returning({
+      id: blogs.id,
+    })
+
+  if (createdBlog) {
+    await db.insert(readingList).values({
+      userId,
+      blogId: createdBlog.id,
+      read: false,
+    })
+  }
 }
 
 export const addLike = async (id: number) => {

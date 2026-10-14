@@ -3,9 +3,12 @@
 import bcrypt from "bcryptjs"
 import { eq } from "drizzle-orm"
 import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 
 import { db } from "../../db"
 import { users } from "../../db/schema"
+import { getCurrentUser } from "../services/session"
 
 type RegisterState = {
   error: string
@@ -31,7 +34,10 @@ export const registerUser = async (
   const passwordConfirm =
     (formData.get("passwordConfirm") as string) ?? ""
 
-  const values = { username, name }
+  const values = {
+    username,
+    name,
+  }
 
   if (username.length < 4) {
     return {
@@ -54,9 +60,10 @@ export const registerUser = async (
     }
   }
 
-  const existingUser = await db.query.users.findFirst({
-    where: eq(users.username, username),
-  })
+  const existingUser =
+    await db.query.users.findFirst({
+      where: eq(users.username, username),
+    })
 
   if (existingUser) {
     return {
@@ -65,7 +72,8 @@ export const registerUser = async (
     }
   }
 
-  const passwordHash = await bcrypt.hash(password, 10)
+  const passwordHash =
+    await bcrypt.hash(password, 10)
 
   await db.insert(users).values({
     username,
@@ -74,4 +82,25 @@ export const registerUser = async (
   })
 
   redirect("/login")
+}
+
+export const generateApiToken = async (
+  _formData: FormData
+) => {
+  const user = await getCurrentUser()
+
+  if (!user) {
+    redirect("/login")
+  }
+
+  const token = randomUUID()
+
+  await db
+    .update(users)
+    .set({
+      token,
+    })
+    .where(eq(users.id, user.id))
+
+  revalidatePath("/me")
 }

@@ -30,6 +30,13 @@ export default function NavBar() {
         {session ? (
           <>
             <Link
+              href="/me"
+              className={linkStyle}
+            >
+              my page
+            </Link>
+
+            <Link
               href="/blogs/new"
               className={linkStyle}
             >
