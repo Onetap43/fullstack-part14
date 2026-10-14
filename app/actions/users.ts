@@ -3,15 +3,17 @@
 import bcrypt from "bcryptjs"
 import { eq } from "drizzle-orm"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
-import { randomUUID } from "crypto"
 
 import { db } from "../../db"
 import { users } from "../../db/schema"
-import { getCurrentUser } from "../services/session"
 
-type RegisterState = {
-  error: string
+export type RegisterState = {
+  errors: {
+    username?: string
+    password?: string
+    passwordConfirm?: string
+    general?: string
+  }
   values: {
     username: string
     name: string
@@ -22,58 +24,42 @@ export const registerUser = async (
   _prevState: RegisterState,
   formData: FormData
 ): Promise<RegisterState> => {
-  const username =
-    (formData.get("username") as string)?.trim() ?? ""
+  const username = (formData.get("username") as string)?.trim() ?? ""
+  const name = (formData.get("name") as string)?.trim() ?? ""
+  const password = (formData.get("password") as string) ?? ""
+  const passwordConfirm = (formData.get("passwordConfirm") as string) ?? ""
 
-  const name =
-    (formData.get("name") as string)?.trim() ?? ""
-
-  const password =
-    (formData.get("password") as string) ?? ""
-
-  const passwordConfirm =
-    (formData.get("passwordConfirm") as string) ?? ""
-
-  const values = {
-    username,
-    name,
-  }
+  const values = { username, name }
+  const errors: RegisterState["errors"] = {}
 
   if (username.length < 4) {
-    return {
-      error: "Username must be at least 4 characters",
-      values,
-    }
+    errors.username = "Username must be at least 4 characters"
   }
 
   if (password.length < 4) {
-    return {
-      error: "Password must be at least 4 characters",
-      values,
-    }
+    errors.password = "Password must be at least 4 characters"
   }
 
   if (password !== passwordConfirm) {
-    return {
-      error: "Passwords do not match",
-      values,
-    }
+    errors.passwordConfirm = "Passwords do not match"
   }
 
-  const existingUser =
-    await db.query.users.findFirst({
-      where: eq(users.username, username),
-    })
+  if (Object.keys(errors).length > 0) {
+    return { errors, values }
+  }
+
+  const existingUser = await db.query.users.findFirst({
+    where: eq(users.username, username),
+  })
 
   if (existingUser) {
     return {
-      error: "Username already exists",
+      errors: { username: "Username already exists" },
       values,
     }
   }
 
-  const passwordHash =
-    await bcrypt.hash(password, 10)
+  const passwordHash = await bcrypt.hash(password, 10)
 
   await db.insert(users).values({
     username,
@@ -82,25 +68,4 @@ export const registerUser = async (
   })
 
   redirect("/login")
-}
-
-export const generateApiToken = async (
-  _formData: FormData
-) => {
-  const user = await getCurrentUser()
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  const token = randomUUID()
-
-  await db
-    .update(users)
-    .set({
-      token,
-    })
-    .where(eq(users.id, user.id))
-
-  revalidatePath("/me")
 }

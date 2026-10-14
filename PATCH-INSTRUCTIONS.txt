@@ -1,0 +1,34 @@
+PART 14 FINAL TEST PATCH
+
+1) Extract this ZIP INTO:
+   C:\Users\Pranjal\Documents\fullstack-part14\blog-app
+
+   Allow overwrite/replace when Windows asks.
+
+2) KEEP your existing:
+   - .env.test
+   - db/
+   - drizzle/
+   - auth.ts
+   - package.json
+   - tests/
+   - .github/
+
+3) Optional cleanup (not required for tests):
+   Delete these accidental duplicates if they exist:
+   - homepage.mdx              (root duplicate)
+   - mdx-components.ts        (root duplicate)
+   KEEP:
+   - app/homepage.mdx
+   - mdx-components.tsx
+
+4) Do NOT commit .env.test. The included .gitignore blocks it.
+
+5) Run from the project root:
+   npm run build
+   npm run test:e2e
+
+The included playwright.config.ts fixes the "Cannot navigate to invalid URL" failure
+by setting baseURL=http://localhost:3000. It also starts/reuses the test server.
+
+If tests still fail, send the NEW failure summary only.

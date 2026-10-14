@@ -1,16 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import {
-  signOut,
-  useSession,
-} from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 
 export default function NavBar() {
   const { data: session } = useSession()
-
-  const linkStyle =
-    "hover:text-gray-300"
+  const linkStyle = "hover:text-gray-300"
 
   return (
     <nav className="flex items-center gap-5 bg-gray-900 px-6 py-4 text-white">
@@ -29,17 +24,11 @@ export default function NavBar() {
       <div className="ml-auto flex items-center gap-4">
         {session ? (
           <>
-            <Link
-              href="/me"
-              className={linkStyle}
-            >
-              my page
+            <Link href="/me" className={linkStyle}>
+              me
             </Link>
 
-            <Link
-              href="/blogs/new"
-              className={linkStyle}
-            >
+            <Link href="/blogs/new" className={linkStyle}>
               create new
             </Link>
 
@@ -48,7 +37,7 @@ export default function NavBar() {
             </em>
 
             <button
-              onClick={() => signOut()}
+              onClick={() => signOut({ callbackUrl: "/" })}
               className="rounded bg-gray-700 px-3 py-1 hover:bg-gray-600"
             >
               logout
@@ -56,17 +45,11 @@ export default function NavBar() {
           </>
         ) : (
           <>
-            <Link
-              href="/login"
-              className={linkStyle}
-            >
+            <Link href="/login" className={linkStyle}>
               login
             </Link>
 
-            <Link
-              href="/register"
-              className={linkStyle}
-            >
+            <Link href="/register" className={linkStyle}>
               register
             </Link>
           </>

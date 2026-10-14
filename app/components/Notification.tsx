@@ -11,6 +11,7 @@ export default function Notification() {
 
   return (
     <div
+      data-testid="notification"
       className={
         type === "success"
           ? "mx-auto mt-4 max-w-3xl rounded bg-green-600 px-4 py-3 text-white"
