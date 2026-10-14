@@ -2,9 +2,9 @@ name: End-to-End Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   test:
@@ -12,9 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -24,36 +26,35 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Set up environment file
+      - name: Create test environment
         run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env.test
+          echo "AUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env.test
+          echo "AUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env.test
           echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env.test
           echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env.test
-          echo "NODE_ENV=test" >> .env.test
 
-      - name: Verify environment setup
+      - name: Verify secrets
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          echo "Checking .env.test file:"
-          cat .env.test | sed 's/=.*/=***/' 
-          echo ""
-          echo "DATABASE_URL secret exists: ${{ secrets.DATABASE_URL != '' }}"
-          echo "NEXTAUTH_SECRET secret exists: ${{ secrets.NEXTAUTH_SECRET != '' }}"
-          echo "NEXTAUTH_URL secret exists: ${{ secrets.NEXTAUTH_URL != '' }}"
-          echo ""
-          echo "Checking if DATABASE_URL is loaded from file:"
-          if grep -q "DATABASE_URL=" .env.test; then
-            echo "✓ DATABASE_URL found in .env.test"
-          else
-            echo "✗ DATABASE_URL NOT found in .env.test"
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is missing"
+            exit 1
           fi
+          echo "DATABASE_URL secret is present"
 
       - name: Run database migrations
+        env:
+          NODE_ENV: test
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx drizzle-kit push
 
       - name: Run Playwright tests
         run: npx playwright test
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
