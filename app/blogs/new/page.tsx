@@ -7,8 +7,25 @@ import {
 import { useRouter } from "next/navigation"
 
 import { createBlog } from "../../actions/blogs"
+import {
+  useNotification,
+} from "../../components/NotificationContext"
 
-const initialState = {
+type BlogFormState = {
+  errors: {
+    title?: string
+    author?: string
+    url?: string
+  }
+  values: {
+    title: string
+    author: string
+    url: string
+  }
+  success: boolean
+}
+
+const initialState: BlogFormState = {
   errors: {},
   values: {
     title: "",
@@ -22,13 +39,24 @@ export default function NewBlog() {
   const [state, formAction] =
     useActionState(createBlog, initialState)
 
+  const { showNotification } =
+    useNotification()
+
   const router = useRouter()
 
   useEffect(() => {
     if (state.success) {
+      showNotification(
+        "Blog created successfully!"
+      )
+
       router.push("/blogs?created=1")
     }
-  }, [state.success, router])
+  }, [
+    state.success,
+    showNotification,
+    router,
+  ])
 
   return (
     <div className="mx-auto max-w-xl p-6">

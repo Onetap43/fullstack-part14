@@ -1,10 +1,9 @@
-const Home = () => {
+import Homepage from "./homepage.mdx"
+
+export default function Home() {
   return (
-    <div>
-      <h1>Blog App</h1>
-      <p>Full Stack Open Next.js blog application</p>
+    <div className="markdown mx-auto max-w-3xl p-6">
+      <Homepage />
     </div>
   )
 }
-
-export default Home
