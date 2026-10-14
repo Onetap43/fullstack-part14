@@ -2,14 +2,11 @@
 
 import { randomUUID } from "crypto"
 import { eq } from "drizzle-orm"
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 
 import { db } from "../../db"
-import {
-  users,
-  readingList,
-} from "../../db/schema"
+import { readingList, users } from "../../db/schema"
 import { getCurrentUser } from "../services/session"
 
 export const generateApiToken = async () => {
@@ -27,11 +24,10 @@ export const generateApiToken = async () => {
     .where(eq(users.id, user.id))
 
   revalidatePath("/me")
+  redirect("/me")
 }
 
-export const addToReadingList = async (
-  formData: FormData
-) => {
+export const addToReadingList = async (formData: FormData) => {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -40,14 +36,13 @@ export const addToReadingList = async (
 
   const blogId = Number(formData.get("blogId"))
 
-  const existing =
-    await db.query.readingList.findFirst({
-      where: (items, { and, eq }) =>
-        and(
-          eq(items.userId, user.id),
-          eq(items.blogId, blogId)
-        ),
-    })
+  const existing = await db.query.readingList.findFirst({
+    where: (item, { and, eq }) =>
+      and(
+        eq(item.userId, user.id),
+        eq(item.blogId, blogId)
+      ),
+  })
 
   if (!existing) {
     await db.insert(readingList).values({
@@ -61,9 +56,7 @@ export const addToReadingList = async (
   revalidatePath(`/blogs/${blogId}`)
 }
 
-export const markAsRead = async (
-  formData: FormData
-) => {
+export const markAsRead = async (formData: FormData) => {
   const user = await getCurrentUser()
 
   if (!user) {
