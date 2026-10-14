@@ -17,6 +17,7 @@ type BlogFormState = {
     author: string
     url: string
   }
+  success: boolean
 }
 
 export const createBlog = async (
@@ -29,38 +30,63 @@ export const createBlog = async (
     redirect("/login")
   }
 
-  const title = (formData.get("title") as string)?.trim() ?? ""
-  const author = (formData.get("author") as string)?.trim() ?? ""
-  const url = (formData.get("url") as string)?.trim() ?? ""
+  const title =
+    (formData.get("title") as string)?.trim() ?? ""
+
+  const author =
+    (formData.get("author") as string)?.trim() ?? ""
+
+  const url =
+    (formData.get("url") as string)?.trim() ?? ""
 
   const errors: BlogFormState["errors"] = {}
 
   if (title.length < 5) {
-    errors.title = "Title must be at least 5 characters"
+    errors.title =
+      "Title must be at least 5 characters"
   }
 
   if (author.length < 5) {
-    errors.author = "Author must be at least 5 characters"
+    errors.author =
+      "Author must be at least 5 characters"
   }
 
   if (url.length < 5) {
-    errors.url = "URL must be at least 5 characters"
+    errors.url =
+      "URL must be at least 5 characters"
   }
 
   if (Object.keys(errors).length > 0) {
     return {
       errors,
       values: { title, author, url },
+      success: false,
     }
   }
 
-  await addBlog(title, author, url, user.id)
+  await addBlog(
+    title,
+    author,
+    url,
+    user.id
+  )
 
   revalidatePath("/blogs")
-  redirect("/blogs")
+
+  return {
+    errors: {},
+    values: {
+      title: "",
+      author: "",
+      url: "",
+    },
+    success: true,
+  }
 }
 
-export const likeBlog = async (formData: FormData) => {
+export const likeBlog = async (
+  formData: FormData
+) => {
   const id = Number(formData.get("id"))
 
   await addLike(id)
